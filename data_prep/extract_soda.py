@@ -32,13 +32,11 @@ def format_soda_data(input_file="data/raw/soda_raw.jsonl", output_file="data/raw
                 continue
                 
             user_text = dialogue[0]
-            assistant_text = dialogue[1]
-            
-            assigned_persona = random.choice(personas)
+            assistant_text = dialogue[1]          
             
             chat_entry = {
                 "messages": [
-                    {"role": "system", "content": assigned_persona},
+                    {"role": "system", "content": persona},
                     {"role": "user", "content": str(user_text).strip()},
                     {"role": "assistant", "content": str(assistant_text).strip()}
                 ]

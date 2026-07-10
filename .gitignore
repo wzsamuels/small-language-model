@@ -1,5 +1,6 @@
 __pycache__
 gutenberg_plays/
 venv/
+*.json
 *.jsonl
 *.swp

@@ -64,10 +64,10 @@ def generate_text(model, tokenizer, prompt, max_new_tokens=50, temperature=0.8, 
 
 def run_test():
     # Force CPU since you are testing on your laptop
-    device = torch.device("cpu")
+    device = torch.device("cuda")
     print(f"Loading model on {device}...")
     
-    tokenizer = Tokenizer.from_file('data/victorian_troll_tokenizer.json')
+    tokenizer = Tokenizer.from_file('data/tokenizer.json')
     
     # Re-create the architecture using the EXACT SAME hyperparameters as train.py
     vocab_size = 32000
@@ -80,7 +80,7 @@ def run_test():
     model = TransformerModel(vocab_size, d_model, num_heads, d_ff, num_layers, max_len)
     
     # Load the saved weights into the architecture
-    model.load_state_dict(torch.load("victorian_troll_model.pt", map_location=device, weights_only=True))
+    model.load_state_dict(torch.load("custom_model.pt", map_location=device, weights_only=True))
     model.to(device)
     
     while True:

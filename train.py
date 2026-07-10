@@ -33,6 +33,8 @@ def train_model(input_training_file, input_tokenizer_file, device="cpu", max_len
         max_length=max_len
     )
     
+    print(f"Dataset loaded with {len(dataset)} samples.")
+
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
     # 3. Initialize Model
