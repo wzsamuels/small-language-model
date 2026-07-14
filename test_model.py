@@ -2,14 +2,14 @@ import torch
 import random
 import torch.nn.functional as F
 from tokenizers import Tokenizer
-from model import TransformerModel
-from config import personas
+from architecture.transformer_blocks import TransformerModel
+from config import persona
 
-def generate_text(model, tokenizer, prompt, max_new_tokens=50, temperature=0.8, device="cpu"):
+def generate_text(model, tokenizer, prompt, max_new_tokens, temperature, device, max_len):
     # Set the model to evaluation mode (disables dropout layers)
     model.eval() 
     
-    # 1. Convert our text prompt into integer IDs
+    # Convert our text prompt into integer IDs
     encoded = tokenizer.encode(prompt)
     input_ids = torch.tensor(encoded.ids, dtype=torch.long).unsqueeze(0).to(device)
     
@@ -19,7 +19,7 @@ def generate_text(model, tokenizer, prompt, max_new_tokens=50, temperature=0.8, 
     # Track only the newly generated tokens
     generated_new_ids = []
     
-    # 2. The Autoregressive Loop
+    # The Autoregressive Loop
     with torch.no_grad(): # Tell PyTorch not to track gradients (saves memory)
         for _ in range(max_new_tokens):
             # Pass the current sequence through the model
@@ -28,10 +28,18 @@ def generate_text(model, tokenizer, prompt, max_new_tokens=50, temperature=0.8, 
             # Get the predictions for the very last token in the sequence
             next_token_logits = logits[0, -1, :]
             
-            # 3. Apply Temperature
+            # Apply a repetition penalty of 1.2 to previously generated words
+            repetition_penalty = 1.2
+            for past_token_id in set(generated_new_ids):
+                if next_token_logits[past_token_id] > 0:
+                    next_token_logits[past_token_id] /= repetition_penalty
+                else:
+                    next_token_logits[past_token_id] *= repetition_penalty
+
+            # Apply Temperature
             next_token_logits = next_token_logits / temperature
             
-            # 4. Convert to probabilities and sample the next word
+            # Convert to probabilities and sample the next word
             probs = F.softmax(next_token_logits, dim=-1)
             next_token_id = torch.multinomial(probs, num_samples=1).item()
             
@@ -43,7 +51,6 @@ def generate_text(model, tokenizer, prompt, max_new_tokens=50, temperature=0.8, 
             word = tokenizer.decode([next_token_id], skip_special_tokens=False)
             print(word, end="", flush=True)
             
-            # 5. STRING-BASED STOP CHECK (The Fix)
             # We decode the entire newly generated sequence to check for structural tags
             new_text = tokenizer.decode(generated_new_ids, skip_special_tokens=False)
             
@@ -52,12 +59,12 @@ def generate_text(model, tokenizer, prompt, max_new_tokens=50, temperature=0.8, 
                 print("\n[Turn Ended]")
                 break
             
-            # 6. Append the new token to the sequence for the next loop iteration
+            # Append the new token to the sequence for the next loop iteration
             next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long).to(device)
             input_ids = torch.cat([input_ids, next_token_tensor], dim=1)
             
             # Safety check: don't exceed the model's max context length
-            if input_ids.size(1) >= 128:
+            if input_ids.size(1) >= max_len:
                 break
                 
     print("\n")                
@@ -85,7 +92,7 @@ def run_test():
     
     while True:
         # Format the prompt EXACTLY how it looked in the training data JSONL
-        system_prompt = random.choice(personas) 
+        system_prompt = persona
         user_message = input("> ")
 
         if user_message == "quit":
@@ -95,8 +102,7 @@ def run_test():
         formatted_prompt = f"<|system|> {system_prompt} <|user|> {user_message} <|assistant|>"
         
         # Generate! Try adjusting the temperature between 0.5 (boring) and 1.2 (insane)
-        generate_text(model, tokenizer, formatted_prompt, max_new_tokens=60, temperature=0.9, device=device)
-
+        generate_text(model, tokenizer, formatted_prompt, max_new_tokens=50, temperature=0.5, device=device, max_len=max_len)
 
 if __name__ == "__main__":
     run_test()

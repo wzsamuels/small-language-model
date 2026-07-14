@@ -59,3 +59,13 @@ def train_custom_tokenizer(dataset_path, output_path, vocab_size=32000):
 
 # Execute
 # train_custom_tokenizer('../data/master_training_data.jsonl', vocab_size=32000)
+
+if __name__ == "__main__":
+    # Test it out to see the results
+    test_string = "You are a Victorian-era troll. Wherefore art thou posting cringe?"
+    
+    encoded = tokenizer.encode(test_string)
+    print(f"\nTest Encoding:")
+    print(f"Original: {test_string}")
+    print(f"Tokens: {encoded.tokens}")
+    print(f"IDs: {encoded.ids}")

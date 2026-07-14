@@ -20,14 +20,15 @@ class CustomDataset(Dataset):
     def __len__(self):
         return len(self.data)
         
-
     def __getitem__(self, idx):
         # Extract the text for this specific conversation exchange
         messages = self.data[idx].get("messages", [])
         
         # Combine the system, user, and assistant text into one string for training
-        
-        raw_text = " ".join([f"<{m['role']}> {m['content']}" for m in messages])
+        raw_text = " ".join([
+            f"<|{m['role']}|> {m['content']}{' <|end|>' if m['role'] == 'assistant' else ''}" 
+            for m in messages
+        ])
 
         # 2. Use your custom tokenizer to convert the human text into sequences of integer IDs
         encoded = self.tokenizer.encode(raw_text)

@@ -159,15 +159,22 @@ class TransformerModel(nn.Module):
         self.linear = nn.Linear(d_model, vocab_size)
 
     def forward(self, x, mask=None):
-        # 1. Convert IDs to embeddings and add positional encoding
+        # 1. Generate the Causal "Look-Ahead" Mask!
+        seq_len = x.size(1)
+        
+        # Create a lower-triangular matrix of 1s and 0s. 
+        # This mathematically blocks the model from looking at future tokens.
+        causal_mask = torch.tril(torch.ones(seq_len, seq_len, device=x.device))
+        
+        # 2. Convert IDs to embeddings and add positional encoding
         x = self.embed(x)
         x = self.pos_enc(x)
         
-        # 2. Pass through all the Transformer layers
+        # 3. Pass through all the Transformer layers WITH THE MASK
         for layer in self.layers:
-            x = layer(x, mask)
+            x = layer(x, causal_mask)
             
-        # 3. Project to vocab size to get the raw scores (logits) for the next word
+        # 4. Project to vocab size to get the raw scores (logits) for the next word
         return self.linear(x)
 
 # --- Test the Architecture ---

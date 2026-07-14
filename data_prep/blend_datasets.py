@@ -1,16 +1,37 @@
 import json
 import random
 import math
+import os
 
-def blend_data(gutenberg_path, modern_path, output_path, gutenberg_weight=0.75):
+def blend_data(input_files, output_path):
     print("Loading datasets into memory")
+
+    formatted_data = []
+
+    for file in input_files:
+        if not os.path.exists(file):
+            raise FileNotFoundError(f"CRITICAL: Cannot find {file}. Did the download and formatting phases complete successfully?")
+        with open(file, 'r', encoding='utf-8') as f:
+            formatted_data.extend([line for line in f if line.strip()])
+    
+    # Shuffle aggressively so the model doesn't learn in chunks
+    random.shuffle(formatted_data);
+    
+    print(f"Writing to {output_path}...")
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for line in formatted_data:
+            f.write(line)
+            
+    print("Blending complete! Your data is ready.")
+
+def blend_and_balance(input_files, output_path, gutenberg_weight=0.25):
 
     with open(gutenberg_path, 'r', encoding='utf-8') as f:
         gutenberg_data = [line for line in f if line.strip()]
 
     with open(modern_path, 'r', encoding='utf-8') as f:
         modern_data = [line for line in f if line.strip()]
-
+        
     g_count = len(gutenberg_data)
     m_count = len(modern_data)
     
@@ -47,6 +68,7 @@ def blend_data(gutenberg_path, modern_path, output_path, gutenberg_weight=0.75):
             f.write(line)
             
     print("Blending complete! Your data is ready.")
+    return None, None
 
 # Execute the script
 # Change gutenberg_weight to adjust the ratio (e.g., 0.50 for a 50/50 split)

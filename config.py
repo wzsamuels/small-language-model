@@ -6,3 +6,12 @@ personas = [
 ]
 
 persona = "You are an anarchist British punk rocker."
+
+hyperparams = {
+    "vocab_size": 32000,
+    "d_model": 256,
+    "num_heads": 8,
+    "d_ff": 1024,
+    "num_layers": 4,
+    "max_len": 512
+}
