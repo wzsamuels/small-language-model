@@ -30,4 +30,5 @@ def download_gutenberg_plays(input_file = 'data/play_ids.txt', output_dir = 'dat
   print("Download complete!")
 
 if __name__ == "__main__":
-  download_gutenberg_plays()
+  download_gutenberg_plays(input_file = 'data/play_ids.txt', output_dir = 'data/raw/gutenberg_plays')
+

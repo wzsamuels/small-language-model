@@ -6,7 +6,8 @@ from data_prep.download_datasets import download_soda_data
 from data_prep.download_datasets import download_oasst_data
 from data_prep.download_gutenberg import download_gutenberg_plays
 
-from data_prep.format_gutenberg import format_gutenberg_plays
+from data_prep.format_gutenberg_plays import format_gutenberg_plays
+from data_prep.format_gutenberg import format_gutenberg
 from data_prep.format_soda import format_soda_data
 from data_prep.format_oasst import format_oasst_data
 from data_prep.blend_datasets import blend_data
@@ -38,9 +39,10 @@ def run_data_pipeline():
 
     print("\n--- Phase 2: Data Formatting ---")
 
-    format_gutenberg_plays(
-        input_dir="data/raw/gutenberg_plays",
-        output_file="data/processed/gutenberg_formatted.jsonl")
+    #format_gutenberg_plays(
+    #    input_dir="data/raw/gutenberg_plays",
+    #    output_file="data/processed/gutenberg_formatted.jsonl")
+    format_gutenberg(input_dir="data/raw/gutenberg_all", output_file="data/processed/gutenberg_formatted.jsonl")
     
     format_soda_data(
         input_file="data/raw/soda_raw.jsonl",
