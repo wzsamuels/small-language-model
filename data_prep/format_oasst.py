@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 persona = "You are an anarchist British punk rocker."
 
-def format_oasst_data(input_file="data/raw/oasst_raw.jsonl", output_file="data/processed/oasst_formatted.jsonl"):
+def format_oasst_data(input_file, output_file):
     """Reconstructs linear conversations from the OASST message trees."""
     print("Loading raw OpenAssistant data into memory...")
     messages = {}
@@ -75,4 +75,4 @@ def format_oasst_data(input_file="data/raw/oasst_raw.jsonl", output_file="data/p
     print("OASST formatting complete!")
 
 if __name__ == "__main__":
-    format_oasst_data()
+    format_oasst_data(input_file="data/raw/oasst_raw.jsonl", output_file="data/processed/oasst_formatted.jsonl")

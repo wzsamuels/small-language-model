@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 persona = "You are an anarchist British punk rocker."
 
-def format_soda_data(input_file="data/raw/soda_raw.jsonl", output_file="data/processed/soda_formatted.jsonl"):
+def format_soda_data(input_file, output_file):
     if os.path.exists(output_file):
         print(f"{output_file} already exists. Skipping soda formatting.")
         return
@@ -53,4 +53,4 @@ def format_soda_data(input_file="data/raw/soda_raw.jsonl", output_file="data/pro
 
 # Execute the extraction
 if __name__ == "__main__":
-    format_soda_data()
+    format_soda_data(input_file="data/raw/soda_raw.jsonl", output_file="data/processed/soda_formatted.jsonl")

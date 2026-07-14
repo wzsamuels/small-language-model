@@ -2,12 +2,13 @@ import json
 import torch
 from torch.utils.data import Dataset, DataLoader
 from tokenizers import Tokenizer
+from config import hyperparams
 
 class CustomDataset(Dataset):
-    def __init__(self, jsonl_file, tokenizer_file, max_length=512):
+    def __init__(self, jsonl_file, tokenizer_file):
         # 1. Load the tokenizer and initialize the dataset
         self.tokenizer = Tokenizer.from_file(tokenizer_file)
-        self.max_length = max_length
+        self.max_length = hyperparams["max_len"]
         self.data = []
         
         # Load your JSONL file

@@ -38,9 +38,17 @@ def run_data_pipeline():
 
     print("\n--- Phase 2: Data Formatting ---")
 
-    format_gutenberg_plays(input_dir="data/raw/gutenberg_plays", output_file="data/processed/gutenberg_formatted.jsonl")
-    format_soda_data(input_file="data/raw/soda_raw.jsonl", output_file="data/processed/soda_formatted.jsonl")
-    format_oasst_data(input_file="data/raw/oasst_raw.jsonl", output_file="data/processed/oasst_formatted.jsonl")
+    format_gutenberg_plays(
+        input_dir="data/raw/gutenberg_plays",
+        output_file="data/processed/gutenberg_formatted.jsonl")
+    
+    format_soda_data(
+        input_file="data/raw/soda_raw.jsonl",
+        output_file="data/processed/soda_formatted.jsonl")
+    
+    format_oasst_data(
+        input_file="data/raw/oasst_raw.jsonl",
+        output_file="data/processed/oasst_formatted.jsonl")
     
     print("\n--- Phase 3: Data Blending ---")
     blend_data(input_files = [
@@ -52,13 +60,11 @@ def run_data_pipeline():
     print("\n--- Phase 4: Tokenizer Training ---")
     train_custom_tokenizer(
         dataset_path="data/processed/master_training_data.jsonl",
-        output_path="data/tokenizer.json",
-        vocab_size=32000
+        output_path="data/processed/tokenizer.json"
     )
 
     print("\n--- Phase 5: Model Training ---")
-    train_model(input_training_file="data/processed/master_training_data.jsonl", input_tokenizer_file="data/tokenizer.json", device="cuda", max_len=512)
-
+    train_model(input_training_file="data/processed/master_training_data.jsonl", input_tokenizer_file="data/processed/tokenizer.json", device="cuda")
 
 if __name__ == "__main__":
     run_data_pipeline()

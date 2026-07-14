@@ -28,9 +28,10 @@ def generate_text(model, tokenizer, prompt, max_new_tokens, temperature, device,
             # Get the predictions for the very last token in the sequence
             next_token_logits = logits[0, -1, :]
             
-            # Apply a repetition penalty of 1.2 to previously generated words
+            # Apply a repetition penalty of 1.2 to ALL previously seen words
             repetition_penalty = 1.2
-            for past_token_id in set(generated_new_ids):
+            # Notice we changed this to look at the entire input_ids sequence!
+            for past_token_id in set(input_ids[0].tolist()):
                 if next_token_logits[past_token_id] > 0:
                     next_token_logits[past_token_id] /= repetition_penalty
                 else:
@@ -39,6 +40,16 @@ def generate_text(model, tokenizer, prompt, max_new_tokens, temperature, device,
             # Apply Temperature
             next_token_logits = next_token_logits / temperature
             
+            # Apply Top-K Sampling
+            # 1. Define how many top words we want to keep (40 is the industry standard)
+            top_k = 40
+            # 2. Find the values of the top 40 logits
+            top_k_values, top_k_indices = torch.topk(next_token_logits, top_k)
+            # 3. Find the lowest value out of those top 40
+            min_top_k_value = top_k_values[-1]
+            # 4. Set everything lower than that minimum value to negative infinity!
+            next_token_logits[next_token_logits < min_top_k_value] = float('-inf')
+            
             # Convert to probabilities and sample the next word
             probs = F.softmax(next_token_logits, dim=-1)
             next_token_id = torch.multinomial(probs, num_samples=1).item()
@@ -46,20 +57,23 @@ def generate_text(model, tokenizer, prompt, max_new_tokens, temperature, device,
             # Keep a running list of just the new IDs
             generated_new_ids.append(next_token_id)
             
-            # Decode the integer ID back into a human-readable word and print it
-            # skip_special_tokens=False ensures we can actually see the tags if they generate
-            word = tokenizer.decode([next_token_id], skip_special_tokens=False)
-            print(word, end="", flush=True)
-            
-            # We decode the entire newly generated sequence to check for structural tags
+            # We decode the entire newly generated sequence in the background
             new_text = tokenizer.decode(generated_new_ids, skip_special_tokens=False)
             
-            # If the bot tries to end the conversation, or tries to speak for the user, stop immediately!
-            if "<|end|>" in new_text or "<|user|>" in new_text or "<assistant" in new_text or "<|assistant" in new_text:
-                print("\n[Turn Ended]")
+            # 5. STRING-BASED STOP CHECK & SCRUBBING
+            stop_sequences = ["<|end|>", "<|user|>", "<assistant", "<|assistant"]
+            hit_stop = False
+            for seq in stop_sequences:
+                if seq in new_text:
+                    # Scrub the tag by keeping only the text before the tag
+                    new_text = new_text.split(seq)[0]
+                    hit_stop = True
+                    break
+            
+            if hit_stop:
                 break
             
-            # Append the new token to the sequence for the next loop iteration
+            # 6. Append the new token to the sequence for the next loop iteration
             next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long).to(device)
             input_ids = torch.cat([input_ids, next_token_tensor], dim=1)
             
@@ -67,11 +81,11 @@ def generate_text(model, tokenizer, prompt, max_new_tokens, temperature, device,
             if input_ids.size(1) >= max_len:
                 break
                 
-    print("\n")                
+    print(f"{new_text.strip()}                        \n")             
 
 def run_test():
     # Force CPU since you are testing on your laptop
-    device = torch.device("cuda")
+    device = torch.device("cpu")
     print(f"Loading model on {device}...")
     
     tokenizer = Tokenizer.from_file('data/tokenizer.json')

@@ -40,7 +40,7 @@ def extract_speaker(line):
         
     return None, None
 
-def format_gutenberg_plays(input_dir="data/raw/gutenberg_plays", output_file="data/processed/gutenberg_formatted.jsonl", error_file="logs/gutenberg_errors.txt"):
+def format_gutenberg_plays(input_dir, output_file, error_file):
 
     if os.path.exists(output_file):
         print(f"{output_file} already exists. Skipping Gutenberg formatting.")
@@ -149,4 +149,4 @@ def format_gutenberg_plays(input_dir="data/raw/gutenberg_plays", output_file="da
     print(f"Failed (Check Error Log): {fail_count} plays")
 
 if __name__ == "__main__":
-    format_gutenberg_plays()
+    format_gutenberg_plays(input_dir="data/raw/gutenberg_plays", output_file="data/processed/gutenberg_formatted.jsonl", error_file="logs/gutenberg_errors.txt")

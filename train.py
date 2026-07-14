@@ -8,17 +8,19 @@ from torch.optim import AdamW
 from architecture.dataset import CustomDataset 
 # (Ensure the architecture code from the Canvas is saved as transformer_blocks.py)
 from architecture.transformer_blocks import TransformerModel 
+from config import hyperparms
 
-def train_model(input_training_file, input_tokenizer_file, device="cpu", max_len = 512):
+def train_model(input_training_file, input_tokenizer_file, device="cuda"):
     # 1. Hyperparameters
-    vocab_size = 32000
-    d_model = 256
-    num_heads = 8
-    d_ff = 1024
-    num_layers = 4
-    batch_size = 8
-    epochs = 3
-    learning_rate = 3e-4 # Standard starting learning rate for Transformers
+    vocab_size = hyperparms["vocab_size"]
+    d_model = hyperparms["d_model"]
+    num_heads = hyperparms["num_heads"]
+    d_ff = hyperparms["d_ff"]
+    num_layers = hyperparms["num_layers"]
+    batch_size = hyperparms["batch_size"]
+    epochs = hyperparms["epoches"]
+    learning_rate = hyperparms["learning_rate"] # Standard starting learning rate for Transformers
+    max_len = hyperparms["max_len"]
 
     # Detect if a GPU is available, otherwise fall back to CPU
     device = torch.device("cuda" if (torch.cuda.is_available() and device == "cuda") else "cpu")
