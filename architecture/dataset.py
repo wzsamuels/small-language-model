@@ -22,14 +22,22 @@ class CustomDataset(Dataset):
         return len(self.data)
         
     def __getitem__(self, idx):
-        # Extract the text for this specific conversation exchange
-        messages = self.data[idx].get("messages", [])
+        row = self.data[idx]
         
-        # Combine the system, user, and assistant text into one string for training
-        raw_text = " ".join([
-            f"<|{m['role']}|> {m['content']}{' <|end|>' if m['role'] == 'assistant' else ''}" 
-            for m in messages
-        ])
+        # Check if this is a structured chat
+        if "messages" in row:
+            messages = row.get("messages", [])
+            raw_text = " ".join([
+                f"<|{m['role']}|> {m['content']}{' <|end|>' if m['role'] == 'assistant' else ''}" 
+                for m in messages
+            ])
+            
+        # Check if this is raw prose from a novel
+        elif "text" in row:
+            raw_text = row["text"]
+            
+        else:
+            raw_text = ""
 
         # 2. Use your custom tokenizer to convert the human text into sequences of integer IDs
         encoded = self.tokenizer.encode(raw_text)
