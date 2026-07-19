@@ -13,11 +13,11 @@ app = FastAPI(title="SLM API")
 device = torch.device("cpu")
 print(f"Loading model on {device}...")
 
-tokenizer = Tokenizer.from_file("data/tokenizer.json")
+tokenizer = Tokenizer.from_file("models/tokenizer-v1.json")
 vocab_size = tokenizer.get_vocab_size()
 
 model = TransformerModel(vocab_size=hyperparms["vocab_size"], d_ff=hyperparms["d_ff"], d_model=hyperparms["d_model"], num_heads=hyperparms["num_heads"], num_layers=hyperparms["num_layers"], max_len=hyperparms["max_len"])
-model.load_state_dict(torch.load("custom_model.pt", map_location=device, weights_only=True))
+model.load_state_dict(torch.load("models/custom_model-v1.pt", map_location=device, weights_only=True))
 model.to(device)
 model.eval()
 
