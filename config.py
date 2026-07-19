@@ -11,6 +11,7 @@ hyperparms = {
     "vocab_size": 32000,
     "d_model": 256,
     "num_heads": 8,
+    "num_layers": 4,
     "d_ff": 1024,
     "batch_size": 8,
     "epochs": 3,
