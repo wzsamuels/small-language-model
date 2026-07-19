@@ -3,3 +3,5 @@ gutenberg_plays/
 venv/
 *.jsonl
 *.swp
+
+data/raw
