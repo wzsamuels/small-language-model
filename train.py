@@ -10,7 +10,7 @@ from architecture.dataset import CustomDataset
 from architecture.transformer_blocks import TransformerModel 
 from config import hyperparms
 
-def train_model(input_training_file, input_tokenizer_file, device="cuda"):
+def train_model(input_training_file, input_tokenizer_file, output_file, device="cuda"):
     # 1. Hyperparameters
     vocab_size = hyperparms["vocab_size"]
     d_model = hyperparms["d_model"]
@@ -18,7 +18,7 @@ def train_model(input_training_file, input_tokenizer_file, device="cuda"):
     d_ff = hyperparms["d_ff"]
     num_layers = hyperparms["num_layers"]
     batch_size = hyperparms["batch_size"]
-    epochs = hyperparms["epoches"]
+    epochs = hyperparms["epochs"]
     learning_rate = hyperparms["learning_rate"] # Standard starting learning rate for Transformers
     max_len = hyperparms["max_len"]
 
@@ -31,8 +31,7 @@ def train_model(input_training_file, input_tokenizer_file, device="cuda"):
     print("Loading dataset and tokenizer...")
     dataset = CustomDataset(
         jsonl_file=input_training_file, 
-        tokenizer_file=input_tokenizer_file,
-        max_length=max_len
+        tokenizer_file=input_tokenizer_file
     )
     
     print(f"Dataset loaded with {len(dataset)} samples.")
