@@ -40,10 +40,10 @@ def extract_speaker(line):
         
     return None, None
 
-def format_gutenberg_plays(input_dir, output_file, error_file):
+def format_gutenberg_plays(input_dir, output_file, error_file = 'logs/gutenberg_errors.txt'):
 
     if os.path.exists(output_file):
-        print(f"{output_file} already exists. Skipping Gutenberg formatting.")
+        print(f"{output_file} already exists. Skipping Gutenberg play formatting.")
         return
 
     if not os.path.exists(input_dir):
