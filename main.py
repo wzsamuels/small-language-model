@@ -39,10 +39,11 @@ def run_data_pipeline():
 
     print("\n--- Phase 2: Data Formatting ---")
 
-    #format_gutenberg_plays(
-    #    input_dir="data/raw/gutenberg_plays",
-    #    output_file="data/processed/gutenberg_formatted.jsonl")
-    format_gutenberg(input_dir="data/raw/gutenberg_all", output_file="data/processed/gutenberg_formatted.jsonl")
+    format_gutenberg_plays(
+        input_dir="data/raw/gutenberg_plays",
+        output_file="data/processed/gutenberg_plays_formatted.jsonl")
+
+    format_gutenberg(input_dir="data/raw/english_books", output_file="data/processed/gutenberg_formatted.jsonl")
     
     format_soda_data(
         input_file="data/raw/soda_raw.jsonl",
@@ -55,6 +56,7 @@ def run_data_pipeline():
     print("\n--- Phase 3: Data Blending ---")
     blend_data(input_files = [
         "data/processed/gutenberg_formatted.jsonl",
+        "data/processed/gutenberg_plays_formatted.jsonl",
         "data/processed/soda_formatted.jsonl",
         "data/processed/oasst_formatted.jsonl"
     ], output_path="data/processed/master_training_data.jsonl")
@@ -66,7 +68,11 @@ def run_data_pipeline():
     )
 
     print("\n--- Phase 5: Model Training ---")
-    train_model(input_training_file="data/processed/master_training_data.jsonl", input_tokenizer_file="data/processed/tokenizer.json", device="cuda")
+    train_model(
+        input_training_file="data/processed/master_training_data.jsonl",
+        input_tokenizer_file="data/processed/tokenizer.json",
+        output_file="data/processed/model.pt",
+        device="cuda")
 
 if __name__ == "__main__":
     run_data_pipeline()
