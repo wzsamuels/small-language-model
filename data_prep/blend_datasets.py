@@ -4,6 +4,10 @@ import math
 import os
 
 def blend_data(input_files, output_path):
+    if os.path.exists(output_path):
+        print(f"{output_path} already exists. Skipping Gutenberg formatting.")
+        return
+
     print("Loading datasets into memory")
 
     formatted_data = []

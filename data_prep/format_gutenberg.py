@@ -12,6 +12,11 @@ def clean_gutenberg_text(text):
     return text
 
 def format_gutenberg(input_dir, output_file):
+
+    if os.path.exists(output_file):
+        print(f"{output_file} already exists. Skipping Gutenberg formatting.")
+        return
+
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     
     if not os.path.exists(input_dir):
@@ -26,16 +31,7 @@ def format_gutenberg(input_dir, output_file):
             filepath = os.path.join(input_dir, filename)
             
             with open(filepath, 'r', encoding='utf-8') as file:
-                raw_text = file.read()
-                
-            # Extract just the book content
-            start_match = re.search(r'\*\*\* START OF THE PROJECT GUTENBERG.*?\*\*\*', raw_text)
-            end_match = re.search(r'\*\*\* END OF THE PROJECT GUTENBERG.*?\*\*\*', raw_text)
-            
-            if start_match and end_match:
-                book_text = raw_text[start_match.end():end_match.start()]
-            else:
-                continue # Skip if we can't find the boundaries
+                book_text = file.read()            
                 
             # Clean the text
             clean_text = clean_gutenberg_text(book_text)
@@ -53,6 +49,9 @@ def format_gutenberg(input_dir, output_file):
                     out_file.write(json.dumps({"text": chunk}, ensure_ascii=False) + '\n')
             
             success_count += 1
+
+            if success_count == 5000:
+                break
 
     print(f"Successfully chunked {success_count} novels for pre-training!")
 
