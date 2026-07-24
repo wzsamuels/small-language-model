@@ -7,7 +7,11 @@ from data_prep.download_datasets import download_oasst_data
 from data_prep.download_gutenberg import download_gutenberg_plays
 
 from data_prep.format_gutenberg_plays import format_gutenberg_plays
-from data_prep.format_gutenberg import format_gutenberg
+from data_prep.format_gutenberg_txt import format_gutenberg
+
+from data_prep.format_books1 import format_books1_data
+from data_prep.format_fineweb import format_openwebtext_data
+
 from data_prep.format_soda import format_soda_data
 from data_prep.format_oasst import format_oasst_data
 from data_prep.blend_datasets import blend_data
