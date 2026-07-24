@@ -3,12 +3,20 @@ import json
 import re
 from tqdm import tqdm
 from datasets import load_dataset
+from dotenv import load_dotenv
 
-def format_fineweb_data(output_file="data/raw/fineweb_formatted.jsonl", num_articles=50000):
+load_dotenv()
+
+def format_fineweb_data(output_file="data/raw/fineweb_formatted.jsonl", num_articles=3500000):
     """
     Downloads articles from Hugging Face's high-quality FineWeb dataset 
     and chunks them for Phase 1 pre-training.
     """
+
+    if os.path.exists(output_file):
+        print(f"{output_file} already exists. Skipping FineWeb dataset download and formatting.")
+        return
+
     print(f"Downloading {num_articles:,} FineWeb articles from Hugging Face...")
     
     # We specifically target the 'sample-10BT' subset so we aren't querying the massive 500GB dump!

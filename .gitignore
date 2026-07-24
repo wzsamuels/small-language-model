@@ -4,4 +4,6 @@ venv/
 *.jsonl
 *.swp
 
+.env
+
 data/raw
