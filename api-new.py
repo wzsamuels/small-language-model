@@ -1,35 +1,41 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 import torch
 import torch.nn.functional as F
-from architecture.transformer_blocks import TransformerModel
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List # NEW: Import List for our message arrays
 from tokenizers import Tokenizer
-from config import hyperparms, persona
+from transformer_blocks import TransformerModel
 
-app = FastAPI(title="SLM API")
+# Initialize the API app
+app = FastAPI()
 
-# 2. Setup Device & Load Model (Global scope so it only loads once)
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
-print(f"Loading model on {device}...")
+# 1. Global State: Load the model and tokenizer ONCE when the server starts
+device = torch.device("cpu") # AWS standard instances don't have GPUs
+tokenizer = Tokenizer.from_file('victorian_troll_tokenizer.json')
 
-tokenizer = Tokenizer.from_file("models/tokenizer-v2.json")
-vocab_size = tokenizer.get_vocab_size()
+vocab_size = 32000
+d_model = 256
+num_heads = 8
+d_ff = 1024
+num_layers = 4
+max_len = 128
 
-model = TransformerModel(vocab_size=hyperparms["vocab_size"], d_ff=hyperparms["d_ff"], d_model=hyperparms["d_model"], num_heads=hyperparms["num_heads"], num_layers=hyperparms["num_layers"], max_len=256) #max_len=hyperparms["max_len"])
-model.load_state_dict(torch.load("models/custom_model-v2.pt", map_location=device, weights_only=True))
+model = TransformerModel(vocab_size, d_model, num_heads, d_ff, num_layers, max_len)
+model.load_state_dict(torch.load("victorian_troll_model.pt", map_location=device, weights_only=True))
 model.to(device)
 model.eval()
 
+# 2. Define the expected incoming JSON payload for conversation history
 class Message(BaseModel):
     role: str
     content: str
 
 class ChatRequest(BaseModel):
-    prompt: str
-    temperature: float = 1
+    messages: List[Message]
     max_new_tokens: int = 50
+    temperature: float = 0.9
 
+# 3. Context Window Management
 def manage_context_window(messages_list, max_len, max_new_tokens):
     """Prunes old messages if the conversation exceeds the model's memory."""
     max_prompt_len = max_len - max_new_tokens
@@ -56,11 +62,11 @@ def manage_context_window(messages_list, max_len, max_new_tokens):
         # Pop the oldest conversational turn (index 1)
         messages_list.pop(1)
 
-def api_generate_text(prompt: str, max_new_tokens: int, temperature: float):
-
-    #prompt = manage_context_window(messages, max_len, max_new_tokens)
-
-
+# 4. The Adapted Generation Function
+def api_generate_text(messages: List[Message], max_new_tokens: int, temperature: float):
+    # Format the history and prune if necessary
+    prompt = manage_context_window(messages, max_len, max_new_tokens)
+    
     # Convert text to IDs
     encoded = tokenizer.encode(prompt)
     input_ids = torch.tensor(encoded.ids, dtype=torch.long).unsqueeze(0).to(device)
@@ -68,7 +74,6 @@ def api_generate_text(prompt: str, max_new_tokens: int, temperature: float):
     generated_new_ids = []
     new_text = ""
     
-    # torch.no_grad() is crucial here! It prevents RAM spikes on your 2GB server.
     with torch.no_grad():
         for _ in range(max_new_tokens):
             logits = model(input_ids)
@@ -113,30 +118,35 @@ def api_generate_text(prompt: str, max_new_tokens: int, temperature: float):
             next_token_tensor = torch.tensor([[next_token_id]], dtype=torch.long).to(device)
             input_ids = torch.cat([input_ids, next_token_tensor], dim=1)
             
-            if input_ids.size(1) >= hyperparms["max_len"]:
+            if input_ids.size(1) >= max_len:
                 break
                 
-    # API CHANGE: Return the string instead of printing it!
+    # Return the generated string
     return new_text.strip()
 
-@app.post("/generate")
-async def generate_response(request: ChatRequest):
-    try:
-        # Format the prompt with your required special tags
-        full_prompt = f"<|system|> {persona} <|user|> {request.prompt} <|assistant|>"
+# 5. The API Endpoint
+@app.post("/chat")
+async def chat_endpoint(request: ChatRequest):
+    # Call the adapted function and pass the message history
+    response_text = api_generate_text(
+        messages=request.messages, 
+        max_new_tokens=request.max_new_tokens, 
+        temperature=request.temperature
+    )
+    
+    return {"reply": response_text}
 
-        #messages.insert(0, {"role": "system", "content": persona})
-        
-        response_text = api_generate_text(
-            #messages=request.messages, 
-            prompt=full_prompt,
-            max_new_tokens=request.max_new_tokens, 
-            temperature=request.temperature
-        )
-        
-        return {"response": response_text}
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-# Run locally using: uvicorn api:app --host 127.0.0.1 --port 8000
+    {
+  "messages": [
+    {"role": "system", "content": "You are an anarchist British punk rocker."},
+    {"role": "user", "content": "Oi, what's your name?"},
+    {"role": "assistant", "content": "None of your business, mate."},
+    {"role": "user", "content": "Why are you so rude?"}
+  ],
+  "temperature": 0.9,
+  "max_new_tokens": 50
+}
+
+The FastAPI server will automatically ingest that JSON array, prune out the oldest turns if the history exceeds your 256 or 512 `max_len`, cap it with an `<|assistant|>` tag, and fire off the neural network!

@@ -2,6 +2,7 @@ import os
 import re
 import json
 from tqdm import tqdm
+from training.config import hyperparms
 
 def clean_gutenberg_text(text):
     """Removes Gutenberg-specific formatting artifacts."""
@@ -11,7 +12,7 @@ def clean_gutenberg_text(text):
     text = re.sub(r'\s+', ' ', text).strip() # Normalize spaces
     return text
 
-def format_gutenberg(input_dir, output_file):
+def format_gutenberg(input_dir="data/raw/english_books", output_file="data/raw/gutenberg_formatted.jsonl", num_books=11000):
 
     if os.path.exists(output_file):
         print(f"{output_file} already exists. Skipping Gutenberg formatting.")
@@ -25,9 +26,11 @@ def format_gutenberg(input_dir, output_file):
 
     novel_files = [f for f in os.listdir(input_dir) if f.endswith('.txt')]
     success_count = 0
+
+    print(f"Parsing {num_books} out of {len(novel_files)} books")
     
     with open(output_file, 'w', encoding='utf-8') as out_file:
-        for filename in tqdm(novel_files, desc="Parsing Novels"):
+        for filename in tqdm(novel_files, desc="Parsing Books", total=num_books):
             filepath = os.path.join(input_dir, filename)
             
             with open(filepath, 'r', encoding='utf-8') as file:
@@ -39,10 +42,9 @@ def format_gutenberg(input_dir, output_file):
             # Split into words so we can chunk it
             words = clean_text.split()
             
-            # Group into chunks of ~150 words (leaves room for the tokenizer)
-            chunk_size = 150
-            for i in range(0, len(words), chunk_size):
-                chunk = " ".join(words[i : i + chunk_size])
+            # Group into chunks (leaves room for the tokenizer)
+            for i in range(0, len(words), hyperparms["chunk_size"]):
+                chunk = " ".join(words[i : i + hyperparms["chunk_size"]])
                 
                 # Notice we use "text" instead of "messages"!
                 if len(chunk) > 50: # Only save substantial chunks
@@ -50,10 +52,10 @@ def format_gutenberg(input_dir, output_file):
             
             success_count += 1
 
-            if success_count == 5000:
+            if success_count == num_books:
                 break
 
     print(f"Successfully chunked {success_count} novels for pre-training!")
 
 if __name__ == "__main__":
-    format_gutenberg(input_dir="data/raw/gutenberg_all", output_file="data/processed/gutenberg_formatted.jsonl")
+    format_gutenberg()

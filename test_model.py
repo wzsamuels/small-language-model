@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from tokenizers import Tokenizer
 from architecture.transformer_blocks import TransformerModel
 from config import persona
+from config import hyperparms
 
 def generate_text(model, tokenizer, prompt, max_new_tokens, temperature, device, max_len):
     # Set the model to evaluation mode (disables dropout layers)
@@ -88,20 +89,20 @@ def run_test():
     device = torch.device("cpu")
     print(f"Loading model on {device}...")
     
-    tokenizer = Tokenizer.from_file('data/tokenizer.json')
+    tokenizer = Tokenizer.from_file('models/tokenizer-v2.json')
     
     # Re-create the architecture using the EXACT SAME hyperparameters as train.py
-    vocab_size = 32000
+    vocab_size = 64000
     d_model = 256
     num_heads = 8
     d_ff = 1024
     num_layers = 4
-    max_len = 512
+    max_len = 256
     
     model = TransformerModel(vocab_size, d_model, num_heads, d_ff, num_layers, max_len)
     
     # Load the saved weights into the architecture
-    model.load_state_dict(torch.load("custom_model.pt", map_location=device, weights_only=True))
+    model.load_state_dict(torch.load("models/custom_model-v2.pt", map_location=device, weights_only=True))
     model.to(device)
     
     while True:
@@ -116,7 +117,7 @@ def run_test():
         formatted_prompt = f"<|system|> {system_prompt} <|user|> {user_message} <|assistant|>"
         
         # Generate! Try adjusting the temperature between 0.5 (boring) and 1.2 (insane)
-        generate_text(model, tokenizer, formatted_prompt, max_new_tokens=50, temperature=0.5, device=device, max_len=max_len)
+        generate_text(model, tokenizer, formatted_prompt, max_new_tokens=500, temperature=1.2, device=device, max_len=max_len)
 
 if __name__ == "__main__":
     run_test()

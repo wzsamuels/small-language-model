@@ -4,10 +4,11 @@ import re
 from tqdm import tqdm
 from datasets import load_dataset
 from dotenv import load_dotenv
+from training.config import hyperparms
 
 load_dotenv()
 
-def format_wikipedia_data(output_file="data/raw/wikipedia_formatted.jsonl", num_articles=5):
+def format_wikipedia_data(output_file="data/raw/wikipedia_formatted.jsonl", num_articles=550000):
     """
     Downloads clean Wikipedia articles from Hugging Face and chunks them 
     for Phase 1 pre-training.
@@ -21,7 +22,6 @@ def format_wikipedia_data(output_file="data/raw/wikipedia_formatted.jsonl", num_
     
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     
-    chunk_size = 150 # Words per chunk (leaves room in the 256 context window)
     total_chunks = 0
 
     print(f"Chunking articles and saving to {output_file}...")
@@ -41,8 +41,8 @@ def format_wikipedia_data(output_file="data/raw/wikipedia_formatted.jsonl", num_
             words = clean_text.split()
             
             # Group into chunks of ~150 words
-            for i in range(0, len(words), chunk_size):
-                chunk = " ".join(words[i : i + chunk_size])
+            for i in range(0, len(words), hyperparms["chunk_size"]):
+                chunk = " ".join(words[i : i + hyperparms["chunk_size"]])
                 
                 # Only save substantial chunks (skip tiny 5-word leftover fragments)
                 if len(chunk) > 50: 

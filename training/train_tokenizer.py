@@ -6,9 +6,9 @@ from tokenizers.decoders import ByteLevel as ByteLevelDecoder
 import json
 import os
 
-from config import hyperparms
+from training.config import hyperparms
 
-def train_custom_tokenizer(dataset_path, output_path):
+def train_custom_tokenizer(dataset_path = 'data/processed/phase1_pretraining.jsonl', output_path="models/tokenizer-v3.json"):
 
     if os.path.exists(output_path):
         print(f"{output_path} already exists. Skipping tokenizer phase.")
@@ -41,8 +41,14 @@ def train_custom_tokenizer(dataset_path, output_path):
             for line in f:
                 if not line.strip(): continue
                 data = json.loads(line)
-                for message in data.get("messages", []):
-                    yield message["content"]
+                
+                if "text" in data:
+                    yield data["text"]
+                    
+                # Format B: Phase 2 Fine-Tuning (Structured Chat)
+                elif "messages" in data:
+                    for message in data.get("messages", []):
+                        yield message["content"]
 
     # 5. Train! (This will take a few seconds to a minute depending on your CPU)
     print("Training in progress (calculating character frequencies and merging)...")
@@ -52,4 +58,4 @@ def train_custom_tokenizer(dataset_path, output_path):
     print(f"Success! Tokenizer saved to {output_path}")
 
 if __name__ == "__main__":
-    train_custom_tokenizer('data/processed/master_training_data.jsonl')
+    train_custom_tokenizer()

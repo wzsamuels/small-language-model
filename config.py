@@ -8,24 +8,15 @@ personas = [
 persona = "You are an anarchist British punk rocker."
 
 hyperparms = {
+    "chunk_size": 650,
     "vocab_size": 32000,
-    "d_model": 256,
-    "num_heads": 8,
-    "num_layers": 4,
-    "d_ff": 1024,
-    "batch_size": 8,
-    "epochs": 3,
-    "learning_rate": 3e-4,
-    "max_len": 512
+    "d_model": 768,
+    "num_heads": 12,
+    "d_ff": 3072,
+    "num_layers": 8,
+    "max_len": 1024,
+    "batch_size": 32,
+    "learning_rate_phase1": 3e-4,
+    "learning_rate_phase2": 5e-5,
 }
 
-hyperparms_v2 = {
-    "vocab_size": 32000,
-    "d_model": 256,
-    "num_heads": 8,
-    "d_ff": 1024,
-    "batch_size": 8,
-    "epochs": 3,
-    "learning_rate": 3e-4,
-    "max_len": 256
-}

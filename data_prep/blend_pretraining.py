@@ -2,16 +2,11 @@ import os
 import random
 from tqdm import tqdm
 
-def blend_pretraining_data(output_file="data/processed/phase1_pretraining.jsonl"):
+def blend_pretraining_data(input_files, output_file="data/processed/phase1_pretraining.jsonl"):
     """
     Interleaves multiple massive JSONL files into a single heterogeneous dataset 
     without overloading system RAM.
     """
-    input_files = [
-        "data/raw/pg19_formatted.jsonl",
-        "data/raw/wikipedia_formatted.jsonl",
-        "data/raw/openwebtext_formatted.jsonl"
-    ]
     
     # 1. Verify files exist and open them
     active_files = []
@@ -57,4 +52,10 @@ def blend_pretraining_data(output_file="data/processed/phase1_pretraining.jsonl"
     print(f"\nSuccess! Blended {lines_written:,} total chunks into Phase 1 Pre-Training data.")
 
 if __name__ == "__main__":
-    blend_pretraining_data()
+    input_files = [
+        "data/raw/gutenberg_formatted.jsonl",
+        "data/raw/wikipedia_formatted.jsonl",
+        "data/raw/fineweb_formatted.jsonl",
+        "data/raw/books1_formatted.jsonl"
+    ]
+    blend_pretraining_data(input_files)

@@ -3,8 +3,12 @@ import json
 import re
 from tqdm import tqdm
 from datasets import load_dataset
+from training.config import hyperparms
+from dotenv import load_dotenv
 
-def format_institutional_data(output_file="data/raw/institutional_formatted.jsonl", num_books=10000):
+load_dotenv()
+
+def format_institutional_data(output_file="data/raw/books1_formatted.jsonl", num_books=10000):
     """
     Downloads and formats the Institutional Books 1.0 dataset.
     Extracts post-processed OCR text, flattens page arrays, cleans unicode, 
@@ -25,8 +29,6 @@ def format_institutional_data(output_file="data/raw/institutional_formatted.json
     dataset = dataset.take(num_books)
     
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    
-    chunk_size = 150 # Words per chunk (leaves room in the 256/512 context window)
     total_chunks = 0
 
     print(f"Flattening and chunking books to {output_file}...")
@@ -63,8 +65,8 @@ def format_institutional_data(output_file="data/raw/institutional_formatted.json
             words = clean_text.split()
             
             # 4. Group into chunks of ~150 words for the context window
-            for i in range(0, len(words), chunk_size):
-                chunk = " ".join(words[i : i + chunk_size])
+            for i in range(0, len(words), hyperparms["chunk_size"]):
+                chunk = " ".join(words[i : i + hyperparms["chunk_size"]])
                 
                 # Only save substantial chunks (skip 5-word leftover fragments)
                 if len(chunk) > 50: 

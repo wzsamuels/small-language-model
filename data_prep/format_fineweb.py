@@ -4,6 +4,7 @@ import re
 from tqdm import tqdm
 from datasets import load_dataset
 from dotenv import load_dotenv
+from training.config import hyperparms
 
 load_dotenv()
 
@@ -27,7 +28,6 @@ def format_fineweb_data(output_file="data/raw/fineweb_formatted.jsonl", num_arti
     
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     
-    chunk_size = 150 # Words per chunk (for the 256/512 context window)
     total_chunks = 0
 
     print(f"Chunking articles and saving to {output_file}...")
@@ -46,9 +46,9 @@ def format_fineweb_data(output_file="data/raw/fineweb_formatted.jsonl", num_arti
             clean_text = " ".join(clean_text.split())
             words = clean_text.split()
             
-            # Group into chunks of ~150 words
-            for i in range(0, len(words), chunk_size):
-                chunk = " ".join(words[i : i + chunk_size])
+            # Group into chunks based on context size
+            for i in range(0, len(words), hyperparms["chunk_size"]):
+                chunk = " ".join(words[i : i + hyperparms["chunk_size"]])
                 
                 # Only save substantial chunks
                 if len(chunk) > 50: 
